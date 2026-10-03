@@ -10,6 +10,8 @@ import {
   Maximize2,
   Minimize2,
   Box,
+  Plus,
+  Minus,
 } from 'lucide-react';
 
 interface Viewport3DProps {
@@ -809,6 +811,12 @@ export const Viewport3D: React.FC<Viewport3DProps> = ({
     updateCamera();
   };
 
+  // Button zoom (same limits as the mouse wheel)
+  const zoomBy = (factor: number) => {
+    sphericalRef.current.radius = Math.max(6, Math.min(120, sphericalRef.current.radius * factor));
+    updateCamera();
+  };
+
   // High-Resolution 4K Snapshot Tool
   const handleCaptureSnapshot = () => {
     const renderer = rendererRef.current;
@@ -965,6 +973,25 @@ export const Viewport3D: React.FC<Viewport3DProps> = ({
         >
           <Camera className="w-3.5 h-3.5" />
           <span className="hidden xs:inline">Capture</span>
+        </button>
+      </div>
+
+      {/* Floating zoom buttons */}
+      <div className="absolute bottom-3 right-3 sm:right-4 flex flex-col z-10 overflow-hidden rounded-lg border border-slate-700/80 bg-slate-900/90 shadow-md backdrop-blur-sm">
+        <button
+          onClick={() => zoomBy(0.8)}
+          title="Zoom avant"
+          className="p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors touch-manipulation"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+        <div className="h-px bg-slate-700" />
+        <button
+          onClick={() => zoomBy(1.25)}
+          title="Zoom arrière"
+          className="p-2 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors touch-manipulation"
+        >
+          <Minus className="w-5 h-5" />
         </button>
       </div>
 

@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 
 const RailSection: React.FC<{ label: string }> = ({ label }) => (
-  <div className="mt-3 mb-1 border-b border-[#2F6B7F] pb-1.5 font-serif text-base font-semibold tracking-wider text-[#F4C75B] first:mt-0">
+  <div className="mt-3 mb-1 border-b border-slate-800 pb-1.5 font-serif text-base font-semibold tracking-wider text-cyan-400 first:mt-0">
     {label}
   </div>
 );
@@ -52,9 +52,9 @@ const RailButton: React.FC<{
   onClick: () => void;
 }> = ({ icon: Icon, label, title, active, toggle, accent, green, primary, onClick }) => {
   // Mouda Palace sidebar look: gold outline buttons, filled gold when active
-  let tone = 'text-[#F4C75B] border-[#F4C75B]/30 hover:border-[#F4C75B] hover:bg-[#F4C75B]/10';
-  if (primary) tone = 'bg-[#E8E6E1] text-[#265C6D] border-transparent hover:bg-white shadow-lg';
-  if (active) tone = 'bg-[#F4C75B] text-[#265C6D] border-transparent shadow-lg shadow-[#F4C75B]/20';
+  let tone = 'text-cyan-400 border-cyan-400/30 hover:border-cyan-400 hover:bg-cyan-400/10';
+  if (primary) tone = 'bg-cyan-600 text-white border-transparent hover:bg-cyan-500 shadow-lg shadow-cyan-600/30';
+  if (active) tone = 'bg-cyan-500 text-slate-950 border-transparent shadow-lg shadow-cyan-500/20';
   return (
     <button
       onClick={onClick}
@@ -414,7 +414,7 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans antialiased">
       {/* 1. TOP BAR: Brand | Nav Items | Actions */}
-      <header className="h-14 border-b border-slate-800 bg-slate-900/95 flex items-center justify-between px-3 sm:px-5 shrink-0 z-30 backdrop-blur-md">
+      <header className="h-14 border-b border-slate-800 bg-slate-900/95 flex items-center justify-between px-3 sm:px-5 shrink-0 z-[45] backdrop-blur-md">
         {/* Zone 1: Brand & Template Selector */}
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
@@ -566,9 +566,9 @@ export default function App() {
       {/* 3. WORKSPACE CENTER: Left Sidebars & Viewports */}
       <div className="flex-1 flex overflow-hidden pb-14 md:pb-0 relative">
         {/* Left navigation rail (desktop): views, tools, analysis & export */}
-        <aside className="hidden md:flex w-60 shrink-0 flex-col gap-2 overflow-y-auto border-r border-[#2F6B7F] bg-[#265C6D] p-4 text-[#E8E6E1] z-20">
+        <aside className="hidden md:flex w-60 shrink-0 flex-col gap-2 overflow-y-auto border-r border-slate-800 bg-slate-900 p-4 text-slate-100 z-20">
           <div className="mb-2 text-center">
-            <h1 className="font-serif text-lg font-normal uppercase tracking-[0.15em] text-[#F4C75B]">FES ArchiTecte</h1>
+            <h1 className="font-serif text-lg font-normal uppercase tracking-[0.15em] text-cyan-400">FES ArchiTecte</h1>
             <p className="mt-1 text-[10px] uppercase tracking-widest text-gray-300">Conception & BIM 3D</p>
           </div>
           <RailSection label="Vues" />

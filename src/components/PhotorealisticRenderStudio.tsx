@@ -15,7 +15,6 @@ import {
   RefreshCw,
   Check,
   Compass,
-  Contrast,
   Aperture,
   X,
   Share2,
@@ -55,9 +54,6 @@ export const PhotorealisticRenderStudio: React.FC<PhotorealisticRenderStudioProp
   const [gallery, setGallery] = useState<{ id: string; url: string; title: string; meta: string; date: string }[]>([]);
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<string | null>(null);
 
-  // Compare mode
-  const [isCompareMode, setIsCompareMode] = useState(false);
-  const [compareSplit, setCompareSplit] = useState(50);
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState(false);
 
   // Three.js refs
@@ -548,6 +544,18 @@ export const PhotorealisticRenderStudio: React.FC<PhotorealisticRenderStudioProp
       s2.rotation.x = -pitchRad;
       s2.castShadow = true;
       group.add(s2);
+    } else if (project.roof.type === 'shed') {
+      // Monopente (same geometry as the 3D model viewport)
+      const overhang = project.roof.overhang;
+      const pitchRad = (project.roof.pitch * Math.PI) / 180;
+      const shedPeakH = (width + overhang) * Math.tan(pitchRad);
+      const shedLen = (width + overhang * 2) / Math.cos(pitchRad);
+
+      const shed = new THREE.Mesh(new THREE.BoxGeometry(length + overhang * 2, 0.18, shedLen), roofPbrMat);
+      shed.position.set(length / 2, roofY + shedPeakH / 2, width / 2);
+      shed.rotation.x = pitchRad;
+      shed.castShadow = true;
+      group.add(shed);
     }
 
     scene.add(group);
@@ -784,18 +792,6 @@ export const PhotorealisticRenderStudio: React.FC<PhotorealisticRenderStudioProp
             <span className="text-[11px]">Matériaux</span>
           </button>
 
-          {/* Compare Mode Toggle */}
-          <button
-            onClick={() => setIsCompareMode(!isCompareMode)}
-            className={`hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold items-center gap-1.5 transition-colors ${
-              isCompareMode
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700'
-            }`}
-          >
-            <Contrast className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Comparaison</span>
-          </button>
 
           {/* Trigger Render Button */}
           <button
@@ -834,17 +830,6 @@ export const PhotorealisticRenderStudio: React.FC<PhotorealisticRenderStudioProp
         <div className="flex-1 relative overflow-hidden bg-slate-950">
           <div ref={mountRef} className="w-full h-full block touch-none" />
 
-          {/* Compare Slider Overlay if active */}
-          {isCompareMode && (
-            <div
-              className="absolute inset-0 pointer-events-none border-r-2 border-cyan-400"
-              style={{ width: `${compareSplit}%` }}
-            >
-              <div className="absolute top-4 left-4 bg-slate-900/90 text-cyan-400 border border-cyan-500/40 px-2.5 py-1 rounded text-[11px] font-mono font-bold">
-                Rendu Photoréaliste ({compareSplit}%)
-              </div>
-            </div>
-          )}
 
           {/* Floating Camera Preset Quick Controls */}
           <div className="absolute top-2 sm:top-4 left-2 sm:left-4 flex items-center gap-1.5 z-10 max-w-[calc(100%-16px)] overflow-x-auto no-scrollbar">
