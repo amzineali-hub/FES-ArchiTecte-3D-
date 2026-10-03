@@ -939,11 +939,15 @@ export const MoroccanNormsModal: React.FC<MoroccanNormsModalProps> = ({
           )}
         </div>
 
+        <div className="px-3 sm:px-6 py-2 border-t border-amber-500/30 bg-amber-950/40 text-[10px] sm:text-xs text-amber-200 shrink-0">
+          ⚠ Pré-vérification indicative uniquement. Ces contrôles ne remplacent ni une note de calcul de structure, ni la validation d'un BET ou d'un bureau de contrôle agréé, ni l'instruction du permis de construire.
+        </div>
+
         {/* Footer */}
         <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-800 bg-slate-950/95 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center gap-2 text-slate-400 truncate mr-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="truncate">FES ArchiTecte 3D · Conforme BAEL 91, RPS 2011, RTCM & Loi 12-90</span>
+            <span className="truncate">Pré-vérification indicative — à valider par un BET / bureau de contrôle agréé</span>
           </div>
           <button
             onClick={onClose}

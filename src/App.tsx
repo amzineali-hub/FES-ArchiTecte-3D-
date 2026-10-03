@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   BuildingProject,
   RoomData,
@@ -30,12 +30,59 @@ import {
   ShieldCheck,
   Sliders,
   Menu,
+  Download,
+  Upload,
 } from 'lucide-react';
 
+const STORAGE_KEY = 'fes-architecte-3d:project';
+
+// Minimal structural check so a corrupted/foreign file can't crash the app
+function isValidProject(p: any): p is BuildingProject {
+  return !!(
+    p &&
+    typeof p === 'object' &&
+    typeof p.title === 'string' &&
+    Array.isArray(p.floors) &&
+    p.floors.length > 0 &&
+    p.floors.every((f: any) => f && Array.isArray(f.rooms) && Array.isArray(f.openings)) &&
+    p.dimensions &&
+    typeof p.dimensions.length === 'number' &&
+    typeof p.dimensions.width === 'number' &&
+    p.roof &&
+    p.materials
+  );
+}
+
+function loadSavedProject(): BuildingProject {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (isValidProject(parsed)) return parsed;
+    }
+  } catch {
+    // storage unavailable or corrupted: fall back to the default template
+  }
+  return structuredClone(TEMPLATES[0].project);
+}
+
 export default function App() {
-  // Current active project state
-  const [project, setProject] = useState<BuildingProject>(TEMPLATES[0].project);
+  // Current active project state (restored from the last autosave when available)
+  const [project, setProject] = useState<BuildingProject>(loadSavedProject);
   const [activeFloorIndex, setActiveFloorIndex] = useState<number>(0);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  // Autosave (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      } catch {
+        // quota exceeded / private mode: ignore
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [project]);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
 
   // View layout mode: 2d, 3d, split, or photorealistic
@@ -140,22 +187,25 @@ export default function App() {
 
   const handleUpdateRoom = (floorIndex: number, roomId: string, updates: Partial<RoomData>) => {
     setProject((prev) => {
-      const floors = [...prev.floors];
-      const targetFloor = floors[floorIndex];
+      const targetFloor = prev.floors[floorIndex];
       if (!targetFloor) return prev;
 
-      targetFloor.rooms = targetFloor.rooms.map((r) => (r.id === roomId ? { ...r, ...updates } : r));
+      const floors = [...prev.floors];
+      floors[floorIndex] = {
+        ...targetFloor,
+        rooms: targetFloor.rooms.map((r) => (r.id === roomId ? { ...r, ...updates } : r)),
+      };
       return { ...prev, floors };
     });
   };
 
   const handleDeleteRoom = (floorIndex: number, roomId: string) => {
     setProject((prev) => {
-      const floors = [...prev.floors];
-      const targetFloor = floors[floorIndex];
+      const targetFloor = prev.floors[floorIndex];
       if (!targetFloor) return prev;
 
-      targetFloor.rooms = targetFloor.rooms.filter((r) => r.id !== roomId);
+      const floors = [...prev.floors];
+      floors[floorIndex] = { ...targetFloor, rooms: targetFloor.rooms.filter((r) => r.id !== roomId) };
       return { ...prev, floors };
     });
     if (selectedRoomId === roomId) {
@@ -187,22 +237,25 @@ export default function App() {
 
   const handleUpdateOpening = (floorIndex: number, opId: string, updates: Partial<OpeningData>) => {
     setProject((prev) => {
-      const floors = [...prev.floors];
-      const targetFloor = floors[floorIndex];
+      const targetFloor = prev.floors[floorIndex];
       if (!targetFloor) return prev;
 
-      targetFloor.openings = targetFloor.openings.map((op) => (op.id === opId ? { ...op, ...updates } : op));
+      const floors = [...prev.floors];
+      floors[floorIndex] = {
+        ...targetFloor,
+        openings: targetFloor.openings.map((op) => (op.id === opId ? { ...op, ...updates } : op)),
+      };
       return { ...prev, floors };
     });
   };
 
   const handleDeleteOpening = (floorIndex: number, opId: string) => {
     setProject((prev) => {
-      const floors = [...prev.floors];
-      const targetFloor = floors[floorIndex];
+      const targetFloor = prev.floors[floorIndex];
       if (!targetFloor) return prev;
 
-      targetFloor.openings = targetFloor.openings.filter((op) => op.id !== opId);
+      const floors = [...prev.floors];
+      floors[floorIndex] = { ...targetFloor, openings: targetFloor.openings.filter((op) => op.id !== opId) };
       return { ...prev, floors };
     });
   };
@@ -280,8 +333,36 @@ export default function App() {
     }
   };
 
+  const handleExportProject = () => {
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(project.title || 'projet').replace(/[^\w\-]+/g, '_')}.fes3d.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setIsTemplateMenuOpen(false);
+  };
+
+  const handleImportProject = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!isValidProject(parsed)) throw new Error('invalid');
+      setProject(parsed);
+      setActiveFloorIndex(0);
+      setSelectedRoomId(null);
+      setIsTemplateMenuOpen(false);
+    } catch {
+      alert("Fichier invalide : ce n'est pas un projet FES ArchiTecte 3D.");
+    }
+  };
+
   const handleSelectTemplate = (templateProject: BuildingProject) => {
-    setProject(templateProject);
+    if (!window.confirm('Charger ce modèle remplacera le projet en cours. Continuer ?')) return;
+    setProject(structuredClone(templateProject));
     setActiveFloorIndex(0);
     setSelectedRoomId(null);
     setIsTemplateMenuOpen(false);
@@ -328,8 +409,32 @@ export default function App() {
                     </span>
                   </button>
                 ))}
+                <div className="border-t border-slate-800 mt-1.5 pt-1.5">
+                  <button
+                    onClick={handleExportProject}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 text-xs font-semibold text-slate-200"
+                  >
+                    <Download className="w-3.5 h-3.5 text-cyan-400" />
+                    Exporter le projet (.json)
+                  </button>
+                  <button
+                    onClick={() => importInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 text-xs font-semibold text-slate-200"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                    Ouvrir un projet (.json)
+                  </button>
+                  <span className="text-[10px] text-slate-500 px-2 block">Sauvegarde automatique dans ce navigateur</span>
+                </div>
               </div>
             )}
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleImportProject}
+            />
           </div>
         </div>
 

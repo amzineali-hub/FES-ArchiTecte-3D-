@@ -1083,7 +1083,7 @@ export const ParametricSidebar: React.FC<ParametricSidebarProps> = ({
               <div className="p-2.5 bg-slate-900/90 rounded border border-cyan-500/30 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-400 block font-medium">Budget Travaux Estimatif</span>
-                  <span className="text-[9px] text-slate-500">Gros œuvre + Second œuvre + Finitions</span>
+                  <span className="text-[9px] text-slate-500">Ordre de grandeur au m² habitable — pas un métré détaillé</span>
                 </div>
                 <span className="text-base font-bold font-mono text-cyan-400">
                   {currency === 'MAD'
