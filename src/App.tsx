@@ -34,6 +34,44 @@ import {
   Upload,
 } from 'lucide-react';
 
+const RailSection: React.FC<{ label: string }> = ({ label }) => (
+  <span className="px-2 pt-2 pb-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+    {label}
+  </span>
+);
+
+const RailButton: React.FC<{
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  title?: string;
+  active?: boolean;
+  toggle?: boolean;
+  accent?: boolean;
+  green?: boolean;
+  primary?: boolean;
+  onClick: () => void;
+}> = ({ icon: Icon, label, title, active, toggle, accent, green, primary, onClick }) => {
+  let tone = 'text-slate-400 hover:text-white hover:bg-slate-800';
+  if (accent) tone = 'text-cyan-400 hover:text-cyan-300 hover:bg-slate-800';
+  if (green) tone = 'text-emerald-300 hover:bg-emerald-950/60';
+  if (primary) tone = 'text-white bg-cyan-600 hover:bg-cyan-500 shadow-lg shadow-cyan-600/30';
+  if (active) {
+    tone = toggle
+      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+      : 'bg-slate-800 text-cyan-400 border-slate-700 shadow-sm';
+  }
+  return (
+    <button
+      onClick={onClick}
+      title={title ?? label}
+      className={`mx-1.5 flex flex-col items-center gap-1 rounded-lg border border-transparent px-1 py-2 text-[10px] font-medium leading-tight text-center transition-colors ${tone}`}
+    >
+      <Icon className="h-5 w-5" />
+      <span>{label}</span>
+    </button>
+  );
+};
+
 const STORAGE_KEY = 'fes-architecte-3d:project';
 
 // Minimal structural check so a corrupted/foreign file can't crash the app
@@ -95,8 +133,18 @@ export default function App() {
   const [showFurniture, setShowFurniture] = useState(true);
 
   // Sidebar & Drawers - both open by default to provide full BIM library & parametric inspector
-  const [isLibraryOpen, setIsLibraryOpen] = useState(true);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Only one side panel at a time, to keep the central viewport large
+  const toggleLibrary = () => {
+    setIsLibraryOpen((open) => !open);
+    setIsSidebarOpen(false);
+  };
+  const toggleInspector = () => {
+    setIsSidebarOpen((open) => !open);
+    setIsLibraryOpen(false);
+  };
 
   // Modals
   const [isCadModalOpen, setIsCadModalOpen] = useState(false);
@@ -438,78 +486,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Zone 2: Desktop View Navigation Switchers */}
-        <nav className="hidden md:flex items-center bg-slate-950/70 border border-slate-800 rounded-lg p-1 text-xs">
-          <button
-            onClick={() => setViewMode('split')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              viewMode === 'split'
-                ? 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Layout className="w-3.5 h-3.5" />
-            <span>Vue Double 2D / 3D</span>
-          </button>
-          <button
-            onClick={() => setViewMode('2d')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              viewMode === '2d'
-                ? 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span>Plan 2D</span>
-          </button>
-          <button
-            onClick={() => setViewMode('3d')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              viewMode === '3d'
-                ? 'bg-slate-800 text-cyan-400 shadow-sm border border-slate-700'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Box className="w-3.5 h-3.5" />
-            <span>Maquette 3D</span>
-          </button>
-          <button
-            onClick={() => setViewMode('photorealistic')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              viewMode === 'photorealistic'
-                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-300 shadow-sm border border-cyan-400/50'
-                : 'text-cyan-400 hover:text-cyan-300'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Studio Photoréaliste</span>
-          </button>
-          <button
-            onClick={() => setIsLibraryOpen(!isLibraryOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              isLibraryOpen
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Composants BIM</span>
-          </button>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition-colors ${
-              isSidebarOpen
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Cotes & BET</span>
-          </button>
-        </nav>
-
-        {/* Zone 3: Primary Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Zone 3: Primary Actions (mobile only — on desktop they live in the left rail) */}
+        <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
           {/* Moroccan Building Codes Audit Button */}
           <button
             onClick={() => setIsMoroccanModalOpen(true)}
@@ -592,6 +570,70 @@ export default function App() {
 
       {/* 3. WORKSPACE CENTER: Left Sidebars & Viewports */}
       <div className="flex-1 flex overflow-hidden pb-14 md:pb-0 relative">
+        {/* Left navigation rail (desktop): views, tools, analysis & export */}
+        <aside className="hidden md:flex w-[76px] shrink-0 flex-col gap-1 overflow-y-auto no-scrollbar border-r border-slate-800 bg-slate-900/95 py-2 z-20">
+          <RailSection label="Vues" />
+          <RailButton
+            icon={Layout}
+            label="Double 2D/3D"
+            title="Vue double 2D / 3D"
+            active={viewMode === 'split'}
+            onClick={() => setViewMode('split')}
+          />
+          <RailButton
+            icon={Maximize2}
+            label="Plan 2D"
+            active={viewMode === '2d'}
+            onClick={() => setViewMode('2d')}
+          />
+          <RailButton
+            icon={Box}
+            label="Maquette 3D"
+            active={viewMode === '3d'}
+            onClick={() => setViewMode('3d')}
+          />
+          <RailButton
+            icon={Sparkles}
+            label="Studio photo"
+            title="Studio photoréaliste / rendu"
+            active={viewMode === 'photorealistic'}
+            accent
+            onClick={() => setViewMode('photorealistic')}
+          />
+
+          <RailSection label="Outils" />
+          <RailButton
+            icon={Layers}
+            label="Composants BIM"
+            active={isLibraryOpen}
+            toggle
+            onClick={toggleLibrary}
+          />
+          <RailButton
+            icon={Sliders}
+            label="Cotes & BET"
+            active={isSidebarOpen}
+            toggle
+            onClick={toggleInspector}
+          />
+
+          <RailSection label="Sortie" />
+          <RailButton
+            icon={ShieldCheck}
+            label="Normes Maroc"
+            title="Conformité Maroc : BAEL 91, RPS 2011, RTCM & Loi 12-90"
+            green
+            onClick={() => setIsMoroccanModalOpen(true)}
+          />
+          <RailButton
+            icon={FileCode}
+            label="Export CAD"
+            title="Export CAD (DXF / OBJ)"
+            primary
+            onClick={() => setIsCadModalOpen(true)}
+          />
+        </aside>
+
         {/* Component Library Drawer (Glisser-Déposer / Insérer) */}
         <ComponentLibrary
           isOpen={isLibraryOpen}
@@ -747,7 +789,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={toggleInspector}
           className={`flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-colors min-h-[46px] ${
             isSidebarOpen ? 'text-cyan-400 font-bold bg-cyan-950/40' : 'text-slate-400 hover:text-white'
           }`}
@@ -757,7 +799,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+          onClick={toggleLibrary}
           className={`flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-colors min-h-[46px] ${
             isLibraryOpen ? 'text-cyan-400 font-bold bg-cyan-950/40' : 'text-slate-400 hover:text-white'
           }`}
