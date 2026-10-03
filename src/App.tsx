@@ -35,9 +35,9 @@ import {
 } from 'lucide-react';
 
 const RailSection: React.FC<{ label: string }> = ({ label }) => (
-  <span className="px-2 pt-2 pb-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+  <div className="mt-3 mb-1 border-b border-[#2F6B7F] pb-1.5 font-serif text-base font-semibold tracking-wider text-[#F4C75B] first:mt-0">
     {label}
-  </span>
+  </div>
 );
 
 const RailButton: React.FC<{
@@ -51,22 +51,17 @@ const RailButton: React.FC<{
   primary?: boolean;
   onClick: () => void;
 }> = ({ icon: Icon, label, title, active, toggle, accent, green, primary, onClick }) => {
-  let tone = 'text-slate-400 hover:text-white hover:bg-slate-800';
-  if (accent) tone = 'text-cyan-400 hover:text-cyan-300 hover:bg-slate-800';
-  if (green) tone = 'text-emerald-300 hover:bg-emerald-950/60';
-  if (primary) tone = 'text-white bg-cyan-600 hover:bg-cyan-500 shadow-lg shadow-cyan-600/30';
-  if (active) {
-    tone = toggle
-      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-      : 'bg-slate-800 text-cyan-400 border-slate-700 shadow-sm';
-  }
+  // Mouda Palace sidebar look: gold outline buttons, filled gold when active
+  let tone = 'text-[#F4C75B] border-[#F4C75B]/30 hover:border-[#F4C75B] hover:bg-[#F4C75B]/10';
+  if (primary) tone = 'bg-[#E8E6E1] text-[#265C6D] border-transparent hover:bg-white shadow-lg';
+  if (active) tone = 'bg-[#F4C75B] text-[#265C6D] border-transparent shadow-lg shadow-[#F4C75B]/20';
   return (
     <button
       onClick={onClick}
       title={title ?? label}
-      className={`mx-1.5 flex flex-col items-center gap-1 rounded-lg border border-transparent px-1 py-2 text-[10px] font-medium leading-tight text-center transition-colors ${tone}`}
+      className={`flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-all duration-300 ${tone}`}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-[18px] w-[18px] shrink-0" />
       <span>{label}</span>
     </button>
   );
@@ -571,11 +566,15 @@ export default function App() {
       {/* 3. WORKSPACE CENTER: Left Sidebars & Viewports */}
       <div className="flex-1 flex overflow-hidden pb-14 md:pb-0 relative">
         {/* Left navigation rail (desktop): views, tools, analysis & export */}
-        <aside className="hidden md:flex w-[76px] shrink-0 flex-col gap-1 overflow-y-auto no-scrollbar border-r border-slate-800 bg-slate-900/95 py-2 z-20">
+        <aside className="hidden md:flex w-60 shrink-0 flex-col gap-2 overflow-y-auto border-r border-[#2F6B7F] bg-[#265C6D] p-4 text-[#E8E6E1] z-20">
+          <div className="mb-2 text-center">
+            <h1 className="font-serif text-lg font-normal uppercase tracking-[0.15em] text-[#F4C75B]">FES ArchiTecte</h1>
+            <p className="mt-1 text-[10px] uppercase tracking-widest text-gray-300">Conception & BIM 3D</p>
+          </div>
           <RailSection label="Vues" />
           <RailButton
             icon={Layout}
-            label="Double 2D/3D"
+            label="Vue double 2D / 3D"
             title="Vue double 2D / 3D"
             active={viewMode === 'split'}
             onClick={() => setViewMode('split')}
@@ -594,7 +593,7 @@ export default function App() {
           />
           <RailButton
             icon={Sparkles}
-            label="Studio photo"
+            label="Studio photoréaliste"
             title="Studio photoréaliste / rendu"
             active={viewMode === 'photorealistic'}
             accent
@@ -627,7 +626,7 @@ export default function App() {
           />
           <RailButton
             icon={FileCode}
-            label="Export CAD"
+            label="Export CAD (DXF / OBJ)"
             title="Export CAD (DXF / OBJ)"
             primary
             onClick={() => setIsCadModalOpen(true)}
