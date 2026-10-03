@@ -1,0 +1,6 @@
+{
+  "name": "FES ArchiTecte 3D",
+  "description": "Application d'architecture 3D et dessin de bâtiment paramétrique : saisie de cotes, plans 2D/3D temps réel, exports DXF/OBJ/SVG et studio de rendu photoréaliste.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
