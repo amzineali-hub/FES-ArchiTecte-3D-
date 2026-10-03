@@ -227,7 +227,8 @@ export function auditMoroccanCompliance(
       totalSHON += r.width * r.length;
     });
     fl.openings.forEach((op) => {
-      if (op.type.includes('door')) {
+      // Only exit doors count for the escape-width rule (an interior door of 0.80 m is legitimate)
+      if (op.type === 'entry_door') {
         doorWidthMin = Math.min(doorWidthMin, op.width);
       }
       totalGlazedArea += op.width * op.height;
@@ -262,9 +263,10 @@ export function auditMoroccanCompliance(
 
   // Facteur d'amplification dynamique D du RPS 2011 (pour T ~ 0.2 à 0.5s -> D ~ 2.5)
   const D = 2.5;
-  const v = cityData.velocityRatioV;
-  // Effort tranchant à la base selon RPS 2011 : V = (v * S * D * I / K) * W
-  const baseShearForceVKn = Math.round(((v * S * D * I) / K) * W_kN);
+  // Effort tranchant à la base (force sismique équivalente) : V = (A * S * D * I / K) * W
+  // A = coefficient d'accélération de zone (le rapport de vitesse v sert au zonage, pas à cet effort)
+  const A = cityData.accelerationRatioA;
+  const baseShearForceVKn = Math.round(((A * S * D * I) / K) * W_kN);
 
   // Joint parasismique minimum requis (mm) : 50mm ou H/200
   const jointRequisMm = Math.max(50, Math.round((totalBuildingHeight / 200) * 1000));
@@ -402,7 +404,7 @@ export function auditMoroccanCompliance(
     status: isRtcmCompliant ? 'pass' : 'warning',
     recommendation: isRtcmCompliant
       ? undefined
-      : `Renforcer l’isolation de toiture (≥ 6cm laine/polyuréthane) pour respecter le seuil U_toit de ${uMaxAllowedRoof} W/m²K à ${cityData.name}.`,
+      : `Renforcer l’isolation (toiture ≥ 8 cm laine/polyuréthane, ou paroi plus performante) pour respecter les seuils U_paroi ≤ ${uMaxAllowedWall} et U_toit ≤ ${uMaxAllowedRoof} W/m²K à ${cityData.name}.`,
     referenceCode: 'RTCM Décret 2-13-874 & NM ISO 52003-1',
   });
 
